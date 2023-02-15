@@ -116,18 +116,29 @@ impl ChatHub {
     pub fn input() -> String {
         println!("You:");
         let mut input = String::new();
-        std::io::stdin().read_line(&mut input).unwrap();
+        loop {
+            let mut line = String::new();
+            std::io::stdin().read_line(&mut line).unwrap();
+            if line.trim().is_empty() {
+                break;
+            }
+            input.push_str(&line);
+        }
         input
     }
 
     pub async fn run(&mut self) -> Result<()> {
         loop {
             let input = Self::input();
-            if input.is_empty() {
+            if input.trim().is_empty() {
                 continue;
+            }
+            if input.trim() == "!exit" || input.trim() == "!quit" || input.trim() == "!q" {
+                break;
             }
             self.send_msg(&input).await?;
         }
+        Ok(())
     }
 }
 
