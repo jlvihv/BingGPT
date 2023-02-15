@@ -1,5 +1,5 @@
 [package]
-name = "binggpt-cli"
+name = "binggpt"
 version = "0.1.0"
 edition = "2021"
 
@@ -14,5 +14,11 @@ serde = { version = "1.0.152", features = ["derive"] }
 serde_json = "1.0.93"
 tokio = { version = "1.25.0", features = ["full"] }
 tokio-tungstenite = { version = "0.18.0", features = ["native-tls"] }
-toml = "0.7.2"
 utf8_slice = "1.0.0"
+
+[profile.release]
+strip = true
+panic = "abort"
+lto = true
+codegen-units = 1
+opt-level = "z"

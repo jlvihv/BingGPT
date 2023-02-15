@@ -39,7 +39,6 @@ impl Default for Client {
 
 /// 获取 header
 fn get_header() -> Result<HeaderMap> {
-    let bing_cookies = get_config()?;
     let mut headers = HeaderMap::new();
     headers.insert("user-agent", HeaderValue::from_str("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 Edg/110.0.1587.41")?);
     headers.insert("origin", HeaderValue::from_str("https://www.bing.com")?);
@@ -51,28 +50,27 @@ fn get_header() -> Result<HeaderMap> {
         )?,
     );
     headers.insert("sec-ch-ua-platform", HeaderValue::from_str("Windows")?);
-    headers.insert(
-        "Cookie",
-        HeaderValue::from_str(&format!(
-            "_U={}; KievRPSSecAuth={}",
-            bing_cookies.u, bing_cookies.kiev
-        ))?,
-    );
+    headers.insert("Cookie", HeaderValue::from_str(&get_config()?)?);
     Ok(headers)
 }
 
-#[derive(Deserialize, Serialize, Debug, Clone)]
-pub struct BingCookies {
-    pub u: String,
-    pub kiev: String,
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Cookie {
+    pub name: String,
+    pub value: String,
 }
 
-/// Get config from ~/.config/bing-cookies.toml
-fn get_config() -> Result<BingCookies> {
-    let config_file = format!("{}/.config/bing-cookies.toml", env!("HOME"));
-    let config = fs::read_to_string(config_file)?;
-    let config: BingCookies = toml::from_str(&config)?;
-    Ok(config)
+/// Get config from ~/.config/bing-cookies.json
+fn get_config() -> Result<String> {
+    let config_file = format!("{}/.config/bing-cookies.json", env!("HOME"));
+    let json_str = fs::read_to_string(config_file)?;
+    let cookies: Vec<Cookie> = serde_json::from_str(&json_str)?;
+    let cookies = cookies
+        .iter()
+        .map(|cookie| format!("{}={}", cookie.name, cookie.value))
+        .collect::<Vec<String>>()
+        .join("; ");
+    Ok(cookies)
 }
 
 #[cfg(test)]
