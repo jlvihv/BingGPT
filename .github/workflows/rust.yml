@@ -14,8 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Check
-        run: cargo check
+      - name: Test
+        run: cargo test
       - name: Build
         run: cargo build --release
       - name: Release
