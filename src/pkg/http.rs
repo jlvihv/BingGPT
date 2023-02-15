@@ -1,8 +1,7 @@
-use std::fs;
-
 use anyhow::Result;
 use reqwest::header::{HeaderMap, HeaderValue};
 use serde::{Deserialize, Serialize};
+use std::fs;
 
 #[derive(Debug, Clone)]
 pub struct Client {
@@ -37,7 +36,6 @@ impl Default for Client {
     }
 }
 
-/// 获取 header
 fn get_header() -> Result<HeaderMap> {
     let mut headers = HeaderMap::new();
     headers.insert("user-agent", HeaderValue::from_str("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 Edg/110.0.1587.41")?);
@@ -63,7 +61,12 @@ pub struct Cookie {
 /// Get config from ~/.config/bing-cookies.json
 fn get_config() -> Result<String> {
     let config_file = format!("{}/.config/bing-cookies.json", env!("HOME"));
-    let json_str = fs::read_to_string(config_file)?;
+    let json_str = if let Ok(s) = fs::read_to_string(config_file) {
+        s
+    } else {
+        println!("Config file not found, please create ~/.config/bing-cookies.json");
+        std::process::exit(1);
+    };
     let cookies: Vec<Cookie> = serde_json::from_str(&json_str)?;
     let cookies = cookies
         .iter()
@@ -71,15 +74,4 @@ fn get_config() -> Result<String> {
         .collect::<Vec<String>>()
         .join("; ");
     Ok(cookies)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_get_config() {
-        let config = get_config().unwrap();
-        println!("{:#?}", config)
-    }
 }

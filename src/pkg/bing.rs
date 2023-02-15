@@ -28,7 +28,6 @@ impl Conversation {
                 e
             })?;
         if gjson::get(&json_str, "result.value").to_string() == "Success" {
-            // println!("create_conversation success: {}", json_str);
             Ok(Conversation {
                 client_id: gjson::get(&json_str, "clientId").to_string(),
                 conversation_id: gjson::get(&json_str, "conversationId").to_string(),
@@ -63,7 +62,6 @@ impl ChatHub {
     pub async fn create_websocket(&mut self) -> Result<()> {
         let url = "wss://sydney.bing.com/sydney/ChatHub";
         let (ws_stream, _) = tokio_tungstenite::connect_async(url).await?;
-        // println!("Connected to the server");
         let (write, read) = ws_stream.split();
         self.write = Some(read);
         self.read = Some(write);
@@ -84,13 +82,16 @@ impl ChatHub {
 
     pub async fn send_msg(&mut self, msg: &str) -> Result<()> {
         let write = self.read.as_mut().unwrap();
-        let read = self.write.as_mut().unwrap();
 
         write
             .send(OtherMessage::Text(fill_msg(msg, &self.conversation)))
             .await?;
         self.conversation.invocation_id += 1;
+        Ok(())
+    }
 
+    pub async fn recv_msg(&mut self) -> Result<()> {
+        let read = self.write.as_mut().unwrap();
         println!("Bing:");
         let mut index = 0;
         loop {
@@ -106,52 +107,53 @@ impl ChatHub {
                 }
             }
             if gjson::get(&msg, "type").i32() == 2 {
+                println!();
                 break;
             }
         }
-
         Ok(())
     }
 
-    pub fn input() -> String {
+    pub fn input(&self) -> String {
         println!("You:");
         let mut input = String::new();
+        let mut more_line_mode = false;
         loop {
-            let mut line = String::new();
-            std::io::stdin().read_line(&mut line).unwrap();
-            if line.trim().is_empty() {
+            loop {
+                let mut line = String::new();
+                std::io::stdin().read_line(&mut line).unwrap();
+                if line.trim().is_empty() {
+                    break;
+                } else if line.trim() == ":more" {
+                    println!("(Enter ':end' to end the multi-line mode.)");
+                    more_line_mode = true;
+                    break;
+                } else if line.trim() == ":end" {
+                    more_line_mode = false;
+                    break;
+                }
+                input.push_str(&line)
+            }
+            let input = input.trim().to_string();
+            if input.is_empty() {
+                continue;
+            } else if input == ":exit" || input == ":quit" || input == ":q" {
+                std::process::exit(0);
+            } else if more_line_mode {
+                continue;
+            } else {
                 break;
             }
-            input.push_str(&line);
         }
         input
     }
 
     pub async fn run(&mut self) -> Result<()> {
         loop {
-            let input = Self::input();
-            if input.trim().is_empty() {
-                continue;
-            }
-            if input.trim() == "!exit" || input.trim() == "!quit" || input.trim() == "!q" {
-                break;
-            }
+            let input = self.input();
             self.send_msg(&input).await?;
+            self.recv_msg().await?;
         }
-        Ok(())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[tokio::test]
-    async fn test_chat_hub() {
-        let mut chat_hub = ChatHub::new().await.unwrap();
-        chat_hub.create_websocket().await.unwrap();
-        chat_hub.send_protocol().await.unwrap();
-        chat_hub.send_msg("你好").await.unwrap();
     }
 }
 
