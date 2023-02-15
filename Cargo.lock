@@ -38,6 +38,7 @@ dependencies = [
  "serde_json",
  "tokio",
  "tokio-tungstenite",
+ "utf8_slice",
 ]
 
 [[package]]
@@ -1095,6 +1096,12 @@ name = "utf-8"
 version = "0.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "09cc8ee72d2a9becf2f2febe0205bbed8fc6615b7cb429ad062dc7b7ddd036a9"
+
+[[package]]
+name = "utf8_slice"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "44109e280ecf0f5d8e6ee671c0ee650008275c51dc9e494badd11fb39d785408"
 
 [[package]]
 name = "vcpkg"

@@ -1,3 +1,5 @@
+use std::io::{stdout, Write};
+
 use super::http;
 use anyhow::{Ok, Result};
 use futures::{
@@ -13,6 +15,7 @@ pub struct Conversation {
     pub client_id: String,
     pub conversation_id: String,
     pub conversation_signature: String,
+    pub invocation_id: i32,
 }
 
 impl Conversation {
@@ -25,11 +28,12 @@ impl Conversation {
                 e
             })?;
         if gjson::get(&json_str, "result.value").to_string() == "Success" {
-            println!("create_conversation success: {}", json_str);
+            // println!("create_conversation success: {}", json_str);
             Ok(Conversation {
                 client_id: gjson::get(&json_str, "clientId").to_string(),
                 conversation_id: gjson::get(&json_str, "conversationId").to_string(),
                 conversation_signature: gjson::get(&json_str, "conversationSignature").to_string(),
+                invocation_id: 0,
             })
         } else {
             Err(anyhow::anyhow!(
@@ -59,14 +63,14 @@ impl ChatHub {
     pub async fn create_websocket(&mut self) -> Result<()> {
         let url = "wss://sydney.bing.com/sydney/ChatHub";
         let (ws_stream, _) = tokio_tungstenite::connect_async(url).await?;
-        println!("Connected to the server");
+        // println!("Connected to the server");
         let (write, read) = ws_stream.split();
         self.write = Some(read);
         self.read = Some(write);
         Ok(())
     }
 
-    pub async fn send_msg(&mut self, msg: &str) -> Result<()> {
+    pub async fn send_protocol(&mut self) -> Result<()> {
         let write = self.read.as_mut().unwrap();
         let read = self.write.as_mut().unwrap();
         write
@@ -75,26 +79,55 @@ impl ChatHub {
             ))
             .await?;
         read.next().await.unwrap()?;
+        Ok(())
+    }
+
+    pub async fn send_msg(&mut self, msg: &str) -> Result<()> {
+        let write = self.read.as_mut().unwrap();
+        let read = self.write.as_mut().unwrap();
 
         write
             .send(OtherMessage::Text(fill_msg(msg, &self.conversation)))
             .await?;
+        self.conversation.invocation_id += 1;
 
-        read.for_each(|msg| async move {
-            println!("{:?}", msg);
-            // let msg = msg.unwrap().to_string();
-            // if gjson::get(&msg, "type").to_string() == "1" {
-            //     let answer = gjson::get(&msg, "arguments.0.messages.0.text").to_string();
-            //     if !answer.is_empty() {
-            //         println!("{answer}");
-            //     }
-            // } else {
-            //     println!("bing gpt 回答完毕")
-            // }
-        })
-        .await;
+        println!("Bing:");
+        let mut index = 0;
+        loop {
+            let msg = read.next().await.unwrap()?;
+            let msg = msg.to_string();
+            // println!("{}", msg);
+            if gjson::get(&msg, "type").i32() == 1 {
+                let answer = gjson::get(&msg, "arguments.0.messages.0.text").to_string();
+                if !answer.is_empty() {
+                    print!("{}", utf8_slice::from(&answer, index));
+                    stdout().flush().unwrap();
+                    index = utf8_slice::len(&answer);
+                }
+            }
+            if gjson::get(&msg, "type").i32() == 2 {
+                break;
+            }
+        }
 
         Ok(())
+    }
+
+    pub fn input() -> String {
+        println!("You:");
+        let mut input = String::new();
+        std::io::stdin().read_line(&mut input).unwrap();
+        input
+    }
+
+    pub async fn run(&mut self) -> Result<()> {
+        loop {
+            let input = Self::input();
+            if input.is_empty() {
+                continue;
+            }
+            self.send_msg(&input).await?;
+        }
     }
 }
 
@@ -106,6 +139,7 @@ mod tests {
     async fn test_chat_hub() {
         let mut chat_hub = ChatHub::new().await.unwrap();
         chat_hub.create_websocket().await.unwrap();
+        chat_hub.send_protocol().await.unwrap();
         chat_hub.send_msg("你好").await.unwrap();
     }
 }
@@ -162,7 +196,7 @@ fn fill_msg(msg: &str, conversation: &Conversation) -> String {
                 "responsible_ai_policy_235".to_string(),
                 "enablemm".to_string(),
             ],
-            is_start_of_session: true,
+            is_start_of_session: conversation.invocation_id == 0,
             message: Message {
                 author: "user".to_string(),
                 input_method: "Keyboard".to_string(),
@@ -175,7 +209,7 @@ fn fill_msg(msg: &str, conversation: &Conversation) -> String {
             },
             conversation_id: conversation.conversation_id.clone(),
         }],
-        invocation_id: "0".to_string(),
+        invocation_id: conversation.invocation_id.to_string(),
         target: "chat".to_string(),
         type_: 4,
     };
