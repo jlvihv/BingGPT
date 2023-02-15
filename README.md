@@ -5,6 +5,8 @@
 
 *BingGPT command line client, written in rust*
 
+<img src="bing.png" />
+
 ---
 
 </div>

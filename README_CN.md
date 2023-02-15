@@ -5,6 +5,8 @@
 
 *BingGPT 命令行客户端，使用 rust 编写*
 
+<img src="bing.png" />
+
 ---
 
 </div>
