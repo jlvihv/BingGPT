@@ -2,6 +2,7 @@ use std::io::{stdout, Write};
 
 use super::http;
 use anyhow::{Ok, Result};
+use colored::Colorize;
 use futures::{
     stream::{SplitSink, SplitStream},
     SinkExt, StreamExt,
@@ -22,11 +23,7 @@ impl Conversation {
     pub async fn new() -> Result<Self> {
         let json_str = http::Client::new()
             .get_html("https://www.bing.com/turing/conversation/create")
-            .await
-            .map_err(|e| {
-                println!("create_conversation error: {}", e);
-                e
-            })?;
+            .await?;
         if gjson::get(&json_str, "result.value").to_string() == "Success" {
             Ok(Conversation {
                 client_id: gjson::get(&json_str, "clientId").to_string(),
@@ -36,7 +33,6 @@ impl Conversation {
             })
         } else {
             Err(anyhow::anyhow!(
-                "create_conversation error: {}",
                 gjson::get(&json_str, "result.message").to_string()
             ))
         }
@@ -82,7 +78,6 @@ impl ChatHub {
 
     pub async fn send_msg(&mut self, msg: &str) -> Result<()> {
         let write = self.read.as_mut().unwrap();
-
         write
             .send(OtherMessage::Text(fill_msg(msg, &self.conversation)))
             .await?;
@@ -92,14 +87,14 @@ impl ChatHub {
 
     pub async fn recv_msg(&mut self) -> Result<()> {
         let read = self.write.as_mut().unwrap();
-        println!("Bing:");
+        println!("{}", "Bing:".blue());
         let mut index = 0;
         loop {
-            let msg = read.next().await.unwrap()?;
-            let msg = msg.to_string();
+            let msg = read.next().await.unwrap()?.to_string();
             // println!("{}", msg);
             if gjson::get(&msg, "type").i32() == 1 {
-                let answer = gjson::get(&msg, "arguments.0.messages.0.text").to_string();
+                let answer = gjson::get(&msg, "arguments.0.messages.0.adaptiveCards.0.body.0.text")
+                    .to_string();
                 if !answer.is_empty() {
                     print!("{}", utf8_slice::from(&answer, index));
                     stdout().flush().unwrap();
@@ -107,6 +102,11 @@ impl ChatHub {
                 }
             }
             if gjson::get(&msg, "type").i32() == 2 {
+                let suggesteds = gjson::get(&msg, "item.messages.1.suggestedResponses.#.text");
+                println!("\n{}", "Suggestions:".purple());
+                for suggested in suggesteds.array() {
+                    println!("  {}", suggested);
+                }
                 println!();
                 break;
             }
@@ -115,7 +115,7 @@ impl ChatHub {
     }
 
     pub fn input(&self) -> String {
-        println!("You:");
+        println!("{}", "You:".cyan());
         let mut input = String::new();
         let mut more_line_mode = false;
         loop {
@@ -125,7 +125,7 @@ impl ChatHub {
                 if line.trim().is_empty() {
                     break;
                 } else if line.trim() == ":more" {
-                    println!("(Enter ':end' to end the multi-line mode.)");
+                    println!("{}", "(Enter ':end' to end the multi-line mode.)".green());
                     more_line_mode = true;
                     break;
                 } else if line.trim() == ":end" {

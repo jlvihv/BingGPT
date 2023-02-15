@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.69"
+colored = "2.0.0"
 futures = "0.3.26"
 gjson = "0.8.1"
 reqwest = "0.11.14"

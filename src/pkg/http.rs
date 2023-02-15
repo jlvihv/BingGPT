@@ -1,4 +1,5 @@
 use anyhow::Result;
+use colored::Colorize;
 use reqwest::header::{HeaderMap, HeaderValue};
 use serde::{Deserialize, Serialize};
 use std::fs;
@@ -64,7 +65,10 @@ fn get_config() -> Result<String> {
     let json_str = if let Ok(s) = fs::read_to_string(config_file) {
         s
     } else {
-        println!("Config file not found, please create ~/.config/bing-cookies.json");
+        println!(
+            "{}",
+            "Config file not found, please create ~/.config/bing-cookies.json".red()
+        );
         std::process::exit(1);
     };
     let cookies: Vec<Cookie> = serde_json::from_str(&json_str)?;
