@@ -1,9 +1,11 @@
 <div align="center">
     <img src="https://socialify.git.ci/jlvihv/BingGPT/image?description=1&descriptionEditable=BingGPT%20command%20line%20client%2C%20written%20in%20rust&font=KoHo&language=1&logo=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2F9%2F9c%2FBing_Fluent_Logo.svg&name=1&owner=1&pattern=Circuit%20Board&theme=Auto" alt="BingGPT" width="640" height="320" />
 
-    # BingGPT
+# BingGPT
 
-    *BingGPT 命令行客户端，使用 rust 编写*
+*BingGPT 命令行客户端，使用 rust 编写*
+
+---
 
 </div>
 
