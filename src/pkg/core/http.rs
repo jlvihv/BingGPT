@@ -58,7 +58,7 @@ pub struct Cookie {
 
 fn get_config(cookie_path: &str) -> Result<String> {
     let config_file = if cookie_path.starts_with('~') {
-        let home = std::env::var("HOME").unwrap_or_else(|_| String::from("C:\\Users\\"));
+        let home = std::env::var("USERPROFILE").unwrap_or_default();
         format!("{}{}", home, cookie_path.trim_start_matches('~'))
     } else {
         cookie_path.to_string()
