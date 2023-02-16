@@ -35,6 +35,8 @@ If you have a rust development environment, first you need to clone the code, go
 
 If you want to compile it into binaries, you can run `cargo build --release`. After the compilation is done, you can find the compiled binaries in the `target/release` directory.
 
+If you want to install it to the system, you can run `cargo install --path .`, so you can easily use the `binggpt` command anywhere.
+
 After starting the program, when you see `You:`, it means you can start a conversation with BingGPT, press enter twice to send a message.
 
 In the conversation, you can use the following command.
