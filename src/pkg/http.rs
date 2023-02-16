@@ -49,6 +49,7 @@ fn get_header() -> Result<HeaderMap> {
         )?,
     );
     headers.insert("sec-ch-ua-platform", HeaderValue::from_str("Windows")?);
+    headers.insert("x-forwarded-for", HeaderValue::from_str("8.8.8.8")?);
     headers.insert("Cookie", HeaderValue::from_str(&get_config()?)?);
     Ok(headers)
 }
