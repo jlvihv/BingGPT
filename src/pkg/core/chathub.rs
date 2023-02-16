@@ -53,7 +53,8 @@ impl ChatHub {
 
     pub async fn reset(&mut self) -> Result<()> {
         self.conversation = Conversation::new(&self.cookie_path).await?;
-        self.create_websocket().await?;
+        // TODO: more research is needed here
+        // self.create_websocket().await?;
         self.send_protocol().await?;
         self.msg_cache = String::new();
         Ok(())

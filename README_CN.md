@@ -13,6 +13,12 @@
 
 这个项目是 [EdgeGPT](https://github.com/acheong08/EdgeGPT) 的 rust 语言实现，所有困难的事情都是原项目作者 `acheong08` 完成的，我仅仅是用 rust 写了一遍，所有的功劳都归功于他，感谢大佬的辛勤付出！
 
+## 安装
+
+```bash
+cargo install binggpt
+```
+
 ## 要求
 
 你必须有一个可以访问 BingGPT 的微软账户。
@@ -47,4 +53,8 @@
 
 ## 针对国内用户的特别说明
 
-如果你使用国内 IP 无法使用，你需要想办法换国外 IP 试试。
+如果国内 IP 无法使用，你需要想办法换国外 IP 试试。
+
+## License
+
+[MIT](LICENSE)

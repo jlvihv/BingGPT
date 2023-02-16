@@ -15,6 +15,12 @@
 
 This project is a rust language implementation of [EdgeGPT](https://github.com/acheong08/EdgeGPT), all the hard stuff was done by the original project author `acheong08`, I just wrote it in rust, all credit goes to him, thanks for the hard work big guy!
 
+## Install
+
+```bash
+cargo install binggpt
+```
+
 ## Requirements
 
 You must have a Microsoft account with access to BingGPT.
@@ -46,3 +52,7 @@ In the conversation, you can use the following command.
 - `:end` exit multi-line mode
 
 ## Work in progress
+
+## License
+
+[MIT](LICENSE)

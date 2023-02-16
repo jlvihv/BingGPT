@@ -1,8 +1,8 @@
-use std::io::{stdout, Write};
-
 use super::core::chathub::ChatHub;
 use anyhow::Result;
 use colored::Colorize;
+use rustyline::Editor;
+use std::io::{stdout, Write};
 
 pub struct Bing {
     chat_hub: ChatHub,
@@ -54,20 +54,23 @@ impl Bing {
     }
 
     pub fn input(&self) -> String {
+        let mut rl = Editor::<()>::new().unwrap();
+
         println!("{}", "You:".cyan());
         let mut input = String::new();
         let mut more_line_mode = false;
         loop {
             loop {
-                let mut line = String::new();
-                if std::io::stdin().read_line(&mut line).is_err() {
-                    println!(
-                        "{}",
-                        "Warning: Failed to read line, this line is not invalid, please re-enter"
-                            .yellow()
-                    );
-                    println!("\n{}", "You:".cyan());
-                    continue;
+                let readline = rl.readline("");
+                let line = match readline {
+                    Ok(line) => line,
+                    Err(rustyline::error::ReadlineError::Interrupted) => {
+                        std::process::exit(0);
+                    }
+                    Err(_) => {
+                        println!("{}", "Undefined key".yellow());
+                        "".to_string()
+                    }
                 };
                 match line.trim() {
                     "" => break,
