@@ -1,16 +1,10 @@
 [package]
 name = "binggpt"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license = "MIT"
 homepage = "https://github.com/jlvihv/BingGPT"
-keywords = [
-    "binggpt",
-    "bing-gpt",
-    "BingGPT",
-    "chatgpt",
-    "ChatGPT",
-]
+keywords = ["binggpt", "bing-gpt", "BingGPT", "chatgpt", "ChatGPT"]
 readme = "README.md"
 repository = "https://github.com/jlvihv/BingGPT"
 description = "BingGPT command line client, written in rust"

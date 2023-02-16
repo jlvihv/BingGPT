@@ -1,5 +1,5 @@
 use super::{conversation::Conversation, msg::fill_msg};
-use anyhow::{Ok, Result};
+use anyhow::{bail, Ok, Result};
 use futures::{
     stream::{SplitSink, SplitStream},
     SinkExt, StreamExt,
@@ -11,6 +11,8 @@ pub struct ChatHub {
     conversation: Conversation,
     read: Option<SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, tungstenite::Message>>,
     write: Option<SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>>,
+    msg_cache: String,
+    cookie_path: String,
 }
 
 impl ChatHub {
@@ -20,6 +22,8 @@ impl ChatHub {
             conversation,
             read: None,
             write: None,
+            msg_cache: String::new(),
+            cookie_path: cookie_path.to_string(),
         };
         chat_hub.create_websocket().await?;
         chat_hub.send_protocol().await?;
@@ -47,8 +51,26 @@ impl ChatHub {
         Ok(())
     }
 
+    pub async fn reset(&mut self) -> Result<()> {
+        self.conversation = Conversation::new(&self.cookie_path).await?;
+        self.create_websocket().await?;
+        self.send_protocol().await?;
+        self.msg_cache = String::new();
+        Ok(())
+    }
+
     pub async fn send_msg(&mut self, msg: &str) -> Result<()> {
-        let write = self.read.as_mut().unwrap();
+        let write = match self.read.as_mut() {
+            Some(write) => write,
+            None => {
+                self.reset().await?;
+                if self.read.as_mut().is_some() {
+                    self.read.as_mut().unwrap()
+                } else {
+                    bail!("Connection aborted, failed to reset");
+                }
+            }
+        };
         write
             .send(tungstenite::Message::Text(fill_msg(
                 msg,
@@ -59,8 +81,49 @@ impl ChatHub {
         Ok(())
     }
 
-    pub async fn recv_msg(&mut self) -> Result<String> {
-        let read = self.write.as_mut().unwrap();
-        Ok(read.next().await.unwrap()?.to_string())
+    pub async fn recv_raw_json(&mut self) -> Result<String> {
+        let read = match self.write.as_mut() {
+            Some(read) => read,
+            None => {
+                self.reset().await?;
+                if self.write.as_mut().is_some() {
+                    self.write.as_mut().unwrap()
+                } else {
+                    bail!("Connection aborted, failed to reset");
+                }
+            }
+        };
+        self.msg_cache = read.next().await.unwrap()?.to_string();
+        Ok(self.msg_cache.clone())
+    }
+
+    pub async fn recv_text(&mut self) -> Result<Option<String>> {
+        let msg = self.recv_raw_json().await?;
+        if gjson::get(&msg, "type").i32() == 1 {
+            return Ok(Some(
+                gjson::get(&msg, "arguments.0.messages.0.adaptiveCards.0.body.0.text").to_string(),
+            ));
+        }
+        Ok(None)
+    }
+
+    pub async fn recv_text_only(&mut self) -> Result<Option<String>> {
+        let msg = self.recv_raw_json().await?;
+        if gjson::get(&msg, "type").i32() == 1 {
+            return Ok(Some(
+                gjson::get(&msg, "arguments.0.messages.0.text").to_string(),
+            ));
+        }
+        Ok(None)
+    }
+
+    pub fn recv_suggesteds(&mut self) -> Option<Vec<String>> {
+        let msg = self.msg_cache.clone();
+        if gjson::get(&msg, "type").i32() == 2 {
+            let suggesteds = gjson::get(&msg, "item.messages.1.suggestedResponses.#.text");
+            self.msg_cache = String::new();
+            return Some(suggesteds.array().iter().map(|s| s.to_string()).collect());
+        }
+        None
     }
 }
