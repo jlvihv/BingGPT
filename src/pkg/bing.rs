@@ -79,7 +79,7 @@ impl ChatHub {
     pub async fn send_msg(&mut self, msg: &str) -> Result<()> {
         let write = self.read.as_mut().unwrap();
         write
-            .send(OtherMessage::Text(fill_msg(msg, &self.conversation)))
+            .send(OtherMessage::Text(fill_msg(msg, &self.conversation)?))
             .await?;
         self.conversation.invocation_id += 1;
         Ok(())
@@ -97,7 +97,9 @@ impl ChatHub {
                     .to_string();
                 if !answer.is_empty() {
                     print!("{}", utf8_slice::from(&answer, index));
-                    stdout().flush().unwrap();
+                    if stdout().flush().is_err() {
+                        println!("{}", "Warning: Failed to flush stdout".yellow());
+                    };
                     index = utf8_slice::len(&answer);
                 }
             }
@@ -204,7 +206,7 @@ pub struct Participant {
     pub id: String,
 }
 
-fn fill_msg(msg: &str, conversation: &Conversation) -> String {
+fn fill_msg(msg: &str, conversation: &Conversation) -> Result<String> {
     let args = Args {
         arguments: vec![Argument {
             source: "cib".to_string(),
@@ -233,5 +235,5 @@ fn fill_msg(msg: &str, conversation: &Conversation) -> String {
         target: "chat".to_string(),
         type_: 4,
     };
-    serde_json::to_string(&args).unwrap_or_default() + ""
+    Ok(serde_json::to_string(&args)? + "")
 }
