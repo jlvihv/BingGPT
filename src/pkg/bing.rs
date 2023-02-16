@@ -121,7 +121,14 @@ impl ChatHub {
         loop {
             loop {
                 let mut line = String::new();
-                std::io::stdin().read_line(&mut line).unwrap();
+                if std::io::stdin().read_line(&mut line).is_err() {
+                    println!(
+                        "{}",
+                        "Warning: Failed to read line, this line is not invalid, please re-enter"
+                            .yellow()
+                    );
+                    continue;
+                };
                 if line.trim().is_empty() {
                     break;
                 } else if line.trim() == ":more" {
