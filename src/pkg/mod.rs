@@ -1,2 +1,2 @@
-pub mod http;
 pub mod bing;
+pub mod core;
