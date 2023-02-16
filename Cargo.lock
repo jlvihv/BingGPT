@@ -39,7 +39,7 @@ checksum = "a4a4ddaa51a5bc52a6948f74c06d20aaaddb71924eab79b8c97a8c556e942d6a"
 
 [[package]]
 name = "binggpt"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "colored",
