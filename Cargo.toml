@@ -5,12 +5,10 @@ edition = "2021"
 license = "MIT"
 homepage = "https://github.com/jlvihv/BingGPT"
 keywords = [
-    "bing",
     "binggpt",
     "bing-gpt",
     "BingGPT",
     "chatgpt",
-    "chat-gpt",
     "ChatGPT",
 ]
 readme = "README.md"
