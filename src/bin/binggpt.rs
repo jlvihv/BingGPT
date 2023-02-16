@@ -1,7 +1,5 @@
+use binggpt::pkg::bing::Bing;
 use colored::Colorize;
-use pkg::bing::Bing;
-
-pub mod pkg;
 
 #[tokio::main]
 async fn main() {
