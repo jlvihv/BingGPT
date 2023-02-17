@@ -73,7 +73,7 @@ jobs:
           path: |
             ./target/${{ matrix.target }}/release/binggpt.exe
 
-  release-chatgpt:
+  release-binggpt:
     needs: build-binggpt
     runs-on: ubuntu-latest
     steps:
@@ -117,7 +117,7 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@master
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           tag_name: v${{ env.version }}
           name: BingGPT v${{ env.version }}
