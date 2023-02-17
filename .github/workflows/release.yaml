@@ -3,7 +3,7 @@ name: Release CI
 on:
   push:
     tags:
-      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+      - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
 
 jobs:
   build-binggpt:
@@ -32,7 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: 'Setup Rust'
+      - name: "Setup Rust"
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
@@ -55,21 +55,21 @@ jobs:
       - uses: actions/upload-artifact@v3
         if: matrix.os == 'ubuntu-latest'
         with:
-          name: artifacts-${{ matrix.arch }}
+          name: artifacts-${{ matrix.arch }}-linux
           path: |
             ./target/${{ matrix.target }}/release/binggpt
 
       - uses: actions/upload-artifact@v3
         if: matrix.os == 'macos-latest'
         with:
-          name: artifacts-${{ matrix.arch }}
+          name: artifacts-${{ matrix.arch }}-macos
           path: |
             ./target/${{ matrix.target }}/release/binggpt
 
       - uses: actions/upload-artifact@v3
         if: matrix.os == 'windows-latest'
         with:
-          name: artifacts-${{ matrix.arch }}
+          name: artifacts-${{ matrix.arch }}-windows
           path: |
             ./target/${{ matrix.target }}/release/binggpt.exe
 
@@ -82,14 +82,46 @@ jobs:
       - name: Query version number
         run: echo "version=${GITHUB_REF:11}" >> $GITHUB_ENV
 
-      - name: Download x86_64 artifacts
+      - name: Download x86_64 linux artifacts
         uses: actions/download-artifact@v3
         with:
-          name: artifacts-x86_64
-          path: artifacts/x86_64
+          name: artifacts-x86_64-linux
+          path: artifacts/x86_64/linux
 
-      - name: Download aarch64 artifacts
+      - name: Download x86_64 windows artifacts
         uses: actions/download-artifact@v3
         with:
-          name: artifacts-aarch64
-          path: artifacts/aarch64
+          name: artifacts-x86_64-windows
+          path: artifacts/x86_64/windows
+
+      - name: Download x86_64 macos artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: artifacts-x86_64-macos
+          path: artifacts/x86_64/macos
+
+      - name: Download aarch64 macos artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: artifacts-aarch64-macos
+          path: artifacts/aarch64/macos
+
+      - name: Rename artifacts
+        run: |
+          mkdir -p artifacts/release
+          mv "artifacts/x86_64/linux/binggpt" "artifacts/release/binggpt_${{ env.version }}_linux_x86_64"
+          mv "artifacts/x86_64/windows/binggpt.exe" "artifacts/release/binggpt_${{ env.version }}_windows_x86_64.exe"
+          mv "artifacts/x86_64/macos/binggpt" "artifacts/release/binggpt_${{ env.version }}_macos_x86_64"
+          mv "artifacts/aarch64/macos/binggpt" "artifacts/release/binggpt_${{ env.version }}_macos_aarch64"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ env.version }}
+          name: BingGPT v${{ env.version }}
+          body: See the assets to download this version and install.
+          prerelease: false
+          generate_release_notes: false
+          files: ./artifacts/release/*

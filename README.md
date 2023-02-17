@@ -11,6 +11,8 @@ _BingGPT command line client, written in rust_
 
 </div>
 
+> Due to bing ai is being updated, the feature is temporarily unavailable
+
 [中文说明](README_CN.md)
 
 This project is a rust language implementation of [EdgeGPT](https://github.com/acheong08/EdgeGPT), all the hard stuff was done by the original project author `acheong08`, I just wrote it in rust, all credit goes to him, thanks for the hard work big guy!

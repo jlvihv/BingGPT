@@ -11,6 +11,8 @@ _BingGPT 命令行客户端，使用 rust 编写_
 
 </div>
 
+> 由于 Bing AI 正在更新，程序功能暂时不可用
+
 这个项目是 [EdgeGPT](https://github.com/acheong08/EdgeGPT) 的 rust 语言实现，所有困难的事情都是原项目作者 `acheong08` 完成的，我仅仅是用 rust 写了一遍，所有的功劳都归功于他，感谢大佬的辛勤付出！
 
 ## 安装
