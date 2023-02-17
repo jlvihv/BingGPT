@@ -4,11 +4,11 @@ use colored::Colorize;
 use rustyline::Editor;
 use std::io::{stdout, Write};
 
-pub struct Bing {
+pub struct Client {
     chat_hub: ChatHub,
 }
 
-impl Bing {
+impl Client {
     pub async fn new(cookie_path: &str) -> Result<Self> {
         let chat_hub = ChatHub::new(cookie_path).await?;
         Ok(Self { chat_hub })
@@ -54,9 +54,11 @@ impl Bing {
     }
 
     pub fn input(&self) -> String {
-        let mut rl = Editor::<()>::new().unwrap();
+        // TODO: Plan to send messages with "Ctrl + Enter"
 
         println!("{}", "You:".cyan());
+
+        let mut rl = Editor::<()>::new().unwrap();
         let mut input = String::new();
         let mut more_line_mode = false;
         loop {
@@ -64,14 +66,15 @@ impl Bing {
                 let readline = rl.readline("");
                 let line = match readline {
                     Ok(line) => line,
+
+                    // ctrl + c
                     Err(rustyline::error::ReadlineError::Interrupted) => {
                         std::process::exit(0);
                     }
-                    Err(_) => {
-                        println!("{}", "Undefined key".yellow());
-                        "".to_string()
-                    }
+
+                    Err(_) => "".to_string(),
                 };
+
                 match line.trim() {
                     "" => break,
                     ":more" => {

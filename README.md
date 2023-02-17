@@ -3,7 +3,7 @@
 
 # BingGPT
 
-*BingGPT command line client, written in rust*
+_BingGPT command line client, written in rust_
 
 <img src="bing.png" />
 
@@ -51,7 +51,25 @@ In the conversation, you can use the following command.
 - `:more` to enter multi-line mode, where you can safely type more text, or paste text from the clipboard
 - `:end` exit multi-line mode
 
-## Work in progress
+## Possible problems
+
+### For Windows10 users
+
+see [#3](https://github.com/jlvihv/BingGPT/issues/3)
+
+Ensure that users running Windows 10 use this command in their terminal, with administrator privileges, to enable text colors in the terminal.
+
+```powershell
+reg add HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1
+```
+
+## Contributors
+
+This project exists thanks to all the people who contribute.
+
+ <a href="https://github.com/jlvihv/BingGPT/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=jlvihv/BingGPT" />
+ </a>
 
 ## License
 

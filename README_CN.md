@@ -3,7 +3,7 @@
 
 # BingGPT
 
-*BingGPT 命令行客户端，使用 rust 编写*
+_BingGPT 命令行客户端，使用 rust 编写_
 
 <img src="bing.png" />
 
@@ -49,11 +49,29 @@ cargo install binggpt
 - `:more` 进入多行模式，你可以放心的输入更多文本，或者从剪贴板中粘贴文本
 - `:end` 退出多行模式
 
-## 工作正在进行中
+## 可能遇到的问题
+
+### Windows10 用户
+
+见 [#3](https://github.com/jlvihv/BingGPT/issues/3)
+
+确保运行 Windows 10 的用户在其终端中使用此命令并具有管理员权限，以在终端中启用文本颜色。
+
+```powershell
+reg add HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1
+```
 
 ## 针对国内用户的特别说明
 
 如果国内 IP 无法使用，你需要想办法换国外 IP 试试。
+
+## 贡献者
+
+这个项目的存在要感谢所有作出贡献的人。
+
+ <a href="https://github.com/jlvihv/BingGPT/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=jlvihv/BingGPT" />
+ </a>
 
 ## License
 

@@ -13,7 +13,7 @@ pub struct Conversation {
 impl Conversation {
     pub async fn new(cookie_path: &str) -> Result<Self> {
         let json_str = http::Client::new(cookie_path)
-            .get_html("https://www.bing.com/turing/conversation/create")
+            .get_html("https://edgeservices.bing.com/edgesvc/turing/conversation/create")
             .await?;
         if gjson::get(&json_str, "result.value").to_string() == "Success" {
             Ok(Conversation {
