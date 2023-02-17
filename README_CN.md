@@ -5,7 +5,7 @@
 
 _BingGPT 命令行客户端，使用 rust 编写_
 
-<img src="bing.png" />
+<img src="binggpt.png" />
 
 ---
 
