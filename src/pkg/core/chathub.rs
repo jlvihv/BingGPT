@@ -33,9 +33,9 @@ impl ChatHub {
     async fn create_websocket(&mut self) -> Result<()> {
         let url = "wss://sydney.bing.com/sydney/ChatHub";
         let (ws_stream, _) = tokio_tungstenite::connect_async(url).await?;
-        let (write, read) = ws_stream.split();
-        self.write = Some(read);
-        self.read = Some(write);
+        let (read, write) = ws_stream.split();
+        self.read = Some(read);
+        self.write = Some(write);
         Ok(())
     }
 
@@ -52,11 +52,18 @@ impl ChatHub {
     }
 
     pub async fn reset(&mut self) -> Result<()> {
+        self.close().await?;
         self.conversation = Conversation::new(&self.cookie_path).await?;
-        // TODO: more research is needed here
-        // self.create_websocket().await?;
+        self.create_websocket().await?;
         self.send_protocol().await?;
         self.msg_cache = String::new();
+        Ok(())
+    }
+
+    pub async fn close(&mut self) -> Result<()> {
+        if self.read.is_some() {
+            self.read.as_mut().unwrap().close().await?;
+        }
         Ok(())
     }
 
@@ -64,12 +71,7 @@ impl ChatHub {
         let write = match self.read.as_mut() {
             Some(write) => write,
             None => {
-                self.reset().await?;
-                if self.read.as_mut().is_some() {
-                    self.read.as_mut().unwrap()
-                } else {
-                    bail!("Connection aborted, failed to reset");
-                }
+                bail!("Connection aborted, send message failed");
             }
         };
         write
@@ -86,12 +88,7 @@ impl ChatHub {
         let read = match self.write.as_mut() {
             Some(read) => read,
             None => {
-                self.reset().await?;
-                if self.write.as_mut().is_some() {
-                    self.write.as_mut().unwrap()
-                } else {
-                    bail!("Connection aborted, failed to reset");
-                }
+                bail!("Connection aborted, receive message failed");
             }
         };
         self.msg_cache = read.next().await.unwrap()?.to_string();
@@ -118,13 +115,19 @@ impl ChatHub {
         Ok(None)
     }
 
-    pub fn recv_suggesteds(&mut self) -> Option<Vec<String>> {
+    pub fn recv_suggesteds(&mut self) -> Result<Option<Vec<String>>> {
         let msg = self.msg_cache.clone();
         if gjson::get(&msg, "type").i32() == 2 {
+            if gjson::get(&msg, "item.result.value").str() == "Throttled" {
+                let msg = gjson::get(&msg, "item.result.message").to_string();
+                bail!(format!("Error: Throttled: {msg}"))
+            }
             let suggesteds = gjson::get(&msg, "item.messages.1.suggestedResponses.#.text");
             self.msg_cache = String::new();
-            return Some(suggesteds.array().iter().map(|s| s.to_string()).collect());
+            return Ok(Some(
+                suggesteds.array().iter().map(|s| s.to_string()).collect(),
+            ));
         }
-        None
+        Ok(None)
     }
 }

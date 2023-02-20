@@ -4,6 +4,8 @@ use reqwest::header::{HeaderMap, HeaderValue};
 use serde::{Deserialize, Serialize};
 use std::fs;
 
+use super::tools::get_path;
+
 #[derive(Debug, Clone)]
 pub struct Client {
     client: reqwest::Client,
@@ -94,16 +96,7 @@ pub struct Cookie {
 }
 
 fn get_cookie(cookie_path: &str) -> Result<String> {
-    let cookie_path = if cookie_path.starts_with('~') {
-        let home = std::env::var("HOME")
-            .unwrap_or_else(|_| std::env::var("USERPROFILE").unwrap_or_default());
-        if home.is_empty() {
-            bail!("Cannot find user home directory, please specify absolute path")
-        }
-        format!("{}{}", home, cookie_path.trim_start_matches('~'))
-    } else {
-        cookie_path.to_string()
-    };
+    let cookie_path = get_path(cookie_path)?;
 
     let json_str = if let Ok(s) = fs::read_to_string(&cookie_path) {
         s

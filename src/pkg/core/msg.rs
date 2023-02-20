@@ -48,11 +48,9 @@ pub fn fill_msg(msg: &str, conversation: &Conversation) -> Result<String> {
         arguments: vec![Argument {
             source: "cib".to_string(),
             options_sets: vec![
-                "nlu_direct_response_filter".to_string(),
                 "deepleo".to_string(),
                 "enable_debug_commands".to_string(),
                 "disable_emoji_spoken_text".to_string(),
-                "responsible_ai_policy_235".to_string(),
                 "enablemm".to_string(),
             ],
             is_start_of_session: conversation.invocation_id == 0,

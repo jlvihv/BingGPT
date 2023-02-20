@@ -120,7 +120,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           tag_name: v${{ env.version }}
-          name: BingGPT v${{ env.version }}
+          name: v${{ env.version }}
           body: See the assets to download this version and install.
           prerelease: false
           generate_release_notes: false
