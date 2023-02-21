@@ -130,4 +130,12 @@ impl ChatHub {
         }
         Ok(None)
     }
+
+    pub fn is_done(&mut self) -> bool {
+        let msg = self.msg_cache.clone();
+        if gjson::get(&msg, "type").i32() == 2 {
+            return true;
+        }
+        false
+    }
 }

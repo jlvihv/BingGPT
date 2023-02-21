@@ -67,6 +67,51 @@ reg add HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1
 
 如果国内 IP 无法使用，你需要想办法换国外 IP 试试。
 
+## 作为 rust crate 使用
+
+```bash
+cargo add binggpt
+cargo add utf8-slice
+cargo add tokio --features full
+```
+
+```rust
+use std::io::{stdout, Write};
+
+#[tokio::main]
+async fn main() {
+    let mut chathub = binggpt::ChatHub::new("~/.config/bing-cookies.json")
+        .await
+        .unwrap();
+
+    // send message
+    chathub.send_msg("你好").await.unwrap();
+
+    // receive message
+    let mut index = 0;
+
+    // loop until the chat is done
+    loop {
+        if chathub.is_done() {
+            break;
+        }
+
+        let Some(answer) = chathub.recv_text().await.unwrap() else{
+            continue;
+        };
+
+        // print the new part of the answer
+        if !answer.is_empty() {
+            print!("{}", utf8_slice::from(&answer, index));
+            if stdout().flush().is_err() {
+                println!("Warning: Failed to flush stdout");
+            };
+            index = utf8_slice::len(&answer);
+        }
+    }
+}
+```
+
 ## 贡献者
 
 这个项目的存在要感谢所有作出贡献的人。

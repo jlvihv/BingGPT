@@ -1,5 +1,3 @@
-use colored::Colorize;
-use rustyline::Editor;
 use std::str::FromStr;
 
 pub enum Input {
@@ -32,27 +30,36 @@ impl FromStr for Input {
 
 #[cfg(target_os = "windows")]
 pub fn input() -> Input {
-    use rustyline::{Cmd, KeyCode, KeyEvent, Modifiers};
+    use rustyline::{Cmd, DefaultEditor, KeyCode, KeyEvent, Modifiers};
 
-    let mut rl = Editor::<()>::new().unwrap();
+    let mut rl = DefaultEditor::new().unwrap();
     rl.bind_sequence(KeyEvent(KeyCode::Enter, Modifiers::SHIFT), Cmd::Newline);
 
-    let readline = rl.readline("");
-    let line = match readline {
-        Ok(line) => line,
-        // ctrl + c
-        Err(rustyline::error::ReadlineError::Interrupted) => {
-            return Input::Command(Command::Exit);
+    let mut line;
+    loop {
+        let readline = rl.readline("");
+        line = match readline {
+            Ok(line) => line,
+            // ctrl + c
+            Err(rustyline::error::ReadlineError::Interrupted) => {
+                return Input::Command(Command::Exit);
+            }
+            Err(_) => "".to_string(),
+        };
+        if !line.trim().is_empty() {
+            break;
         }
-        Err(_) => "".to_string(),
-    };
+    }
 
     Input::from_str(&line).unwrap()
 }
 
 #[cfg(any(target_os = "macos", target_os = "linux"))]
 pub fn input() -> Input {
-    let mut rl = Editor::<()>::new().unwrap();
+    use colored::Colorize;
+    use rustyline::DefaultEditor;
+
+    let mut rl = DefaultEditor::new().unwrap();
 
     let mut input = String::new();
     let mut multi_line_mode = false;

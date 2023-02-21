@@ -1,7 +1,7 @@
 mod user_input;
 
-use super::core::chathub::ChatHub;
 use crate::pkg::core::tools::get_path;
+use crate::ChatHub;
 use anyhow::{bail, Result};
 use colored::Colorize;
 use std::io::{stdout, Write};
@@ -41,21 +41,29 @@ impl Client {
         println!("{}", "Bing:".blue());
         let mut index = 0;
         loop {
-            let suggesteds = match self.chat_hub.recv_suggesteds() {
-                Ok(suggesteds) => suggesteds,
-                Err(e) => {
-                    bail!(e)
-                }
-            };
+            if self.chat_hub.is_done() {
+                let suggesteds = match self.chat_hub.recv_suggesteds() {
+                    Ok(suggesteds) => suggesteds,
+                    Err(e) => {
+                        bail!(e)
+                    }
+                };
 
-            if let Some(suggesteds) = suggesteds {
-                println!("\n{}", "Suggesteds:".purple());
-                for suggested in suggesteds {
-                    println!("  {}", suggested);
-                }
-                println!();
+                if let Some(suggesteds) = suggesteds {
+                    if suggesteds.is_empty() {
+                        println!("  {}", "No suggesteds".yellow());
+                        println!("  {}", "You may have reached the maximum number of chats. The limit is 5 times.".yellow());
+                        println!("  {}", "You can use `:reset` to reset the conversation.".yellow());
+                    }
+                    println!("\n{}", "Suggesteds:".purple());
+                    for suggested in suggesteds {
+                        println!("  {}", suggested);
+                    }
+                    println!();
+                };
+
                 break;
-            };
+            }
 
             let Some(answer) = self.chat_hub.recv_text().await? else {
                 continue;

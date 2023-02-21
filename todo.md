@@ -1,1 +1,0 @@
-- BingGPT run error: WebSocket protocol error: Connection reset without closing handshake
