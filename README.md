@@ -18,7 +18,12 @@ This project is a rust language implementation of [EdgeGPT](https://github.com/a
 ## Install
 
 ```bash
-cargo install binggpt
+cargo install binggpt-cli
+```
+
+```bash
+# use `binggpt` 
+binggpt
 ```
 
 Or download the binary from the [release page](https://github.com/jlvihv/BingGPT/releases).
@@ -43,7 +48,7 @@ If you have a rust development environment, first you need to clone the code, go
 
 If you want to compile it into binaries, you can run `cargo build --release`. After the compilation is done, you can find the compiled binaries in the `target/release` directory.
 
-If you want to install it to the system, you can run `cargo install --path .`, so you can easily use the `binggpt` command anywhere.
+If you want to install it to the system, you can run `cargo install --path binggpt-cli`, so you can easily use the `binggpt` command anywhere.
 
 After starting the program, when you see `You:`, it means you can start a conversation with BingGPT, press enter twice to send a message.
 

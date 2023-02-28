@@ -16,7 +16,12 @@ _BingGPT 命令行客户端，使用 rust 编写_
 ## 安装
 
 ```bash
-cargo install binggpt
+cargo install binggpt-cli
+```
+
+```bash
+# 执行
+binggpt
 ```
 
 或者从 [release](https://github.com/jlvihv/BingGPT/releases) 页面下载预编译的二进制文件。

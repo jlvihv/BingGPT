@@ -1,5 +1,5 @@
 [package]
-name = "client"
+name = "binggpt-cli"
 version = "0.1.5"
 edition = "2021"
 license = "MIT"
@@ -17,7 +17,7 @@ path = "src/main.rs"
 
 [dependencies]
 anyhow = "1.0.69"
-binggpt = { path = "../binggpt" }
+binggpt = "0.1"
 colored = "2.0.0"
 rustyline = "11.0.0"
 tokio = { version = "1.25.0", features = ["full"] }
