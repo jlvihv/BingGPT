@@ -80,23 +80,23 @@ use std::io::{stdout, Write};
 
 #[tokio::main]
 async fn main() {
-    let mut chathub = binggpt::ChatHub::new("~/.config/bing-cookies.json")
+    let mut bing = binggpt::Bing::new("~/.config/bing-cookies.json")
         .await
         .unwrap();
 
     // send message
-    chathub.send_msg("你好").await.unwrap();
+    bing.send_msg("hello").await.unwrap();
 
     // receive message
     let mut index = 0;
 
     // loop until the chat is done
     loop {
-        if chathub.is_done() {
+        if bing.is_done() {
             break;
         }
 
-        let Some(answer) = chathub.recv_text().await.unwrap() else{
+        let Some(answer) = bing.recv_text().await.unwrap() else{
             continue;
         };
 

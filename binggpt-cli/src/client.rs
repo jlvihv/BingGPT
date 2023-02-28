@@ -1,22 +1,22 @@
-mod user_input;
-
-use crate::pkg::core::tools::get_path;
-use crate::ChatHub;
 use anyhow::{bail, Result};
+use binggpt::tools::get_path;
+use binggpt::Bing;
 use colored::Colorize;
 use std::io::{stdout, Write};
+
+use crate::user_input;
 
 const CONFIG_DIR: &str = "~/.config/binggpt";
 
 pub struct Client {
-    chat_hub: ChatHub,
+    bing: Bing,
 }
 
 impl Client {
     pub async fn new(cookie_path: &str) -> Result<Self> {
         Self::init_config_dir()?;
-        let chat_hub = ChatHub::new(cookie_path).await?;
-        Ok(Self { chat_hub })
+        let bing = Bing::new(cookie_path).await?;
+        Ok(Self { bing })
     }
 
     pub async fn run(&mut self) -> Result<()> {
@@ -34,15 +34,15 @@ impl Client {
     }
 
     pub async fn ask(&mut self, msg: &str) -> Result<()> {
-        self.chat_hub.send_msg(msg).await
+        self.bing.send_msg(msg).await
     }
 
     pub async fn get_answer(&mut self) -> Result<()> {
         println!("{}", "Bing:".blue());
         let mut index = 0;
         loop {
-            if self.chat_hub.is_done() {
-                let suggesteds = match self.chat_hub.recv_suggesteds() {
+            if self.bing.is_done() {
+                let suggesteds = match self.bing.recv_suggesteds() {
                     Ok(suggesteds) => suggesteds,
                     Err(e) => {
                         bail!(e)
@@ -53,7 +53,10 @@ impl Client {
                     if suggesteds.is_empty() {
                         println!("  {}", "No suggesteds".yellow());
                         println!("  {}", "You may have reached the maximum number of chats. The limit is 5 times.".yellow());
-                        println!("  {}", "You can use `:reset` to reset the conversation.".yellow());
+                        println!(
+                            "  {}",
+                            "You can use `:reset` to reset the conversation.".yellow()
+                        );
                     }
                     println!("\n{}", "Suggesteds:".purple());
                     for suggested in suggesteds {
@@ -65,7 +68,7 @@ impl Client {
                 break;
             }
 
-            let Some(answer) = self.chat_hub.recv_text().await? else {
+            let Some(answer) = self.bing.recv_text().await? else {
                 continue;
             };
             if !answer.is_empty() {
@@ -100,7 +103,7 @@ impl Client {
                         println!(":end: exit multi-line mode(in linux and macos)");
                     }
                     user_input::Command::Reset => {
-                        self.chat_hub.reset().await?;
+                        self.bing.reset().await?;
                         println!("Reset the conversation.");
                     }
                     _ => {}

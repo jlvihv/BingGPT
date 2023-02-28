@@ -1,6 +1,8 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
+use crate::bing;
+
 use super::conversation::Conversation;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -70,5 +72,5 @@ pub fn fill_msg(msg: &str, conversation: &Conversation) -> Result<String> {
         target: "chat".to_string(),
         type_: 4,
     };
-    Ok(serde_json::to_string(&args)? + "")
+    Ok(serde_json::to_string(&args)? + bing::SPLIT_CHAR.to_string().as_str())
 }

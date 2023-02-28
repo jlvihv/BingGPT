@@ -1,80 +1,67 @@
 use super::{conversation::Conversation, msg::fill_msg};
 use anyhow::{bail, Ok, Result};
-use futures::{
-    stream::{SplitSink, SplitStream},
-    SinkExt, StreamExt,
-};
+use futures::{SinkExt, StreamExt};
 use tokio::net::TcpStream;
 use tokio_tungstenite::{tungstenite, MaybeTlsStream, WebSocketStream};
 
-pub struct ChatHub {
+pub const SPLIT_CHAR: char = '';
+
+pub struct Bing {
     conversation: Conversation,
-    read: Option<SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, tungstenite::Message>>,
-    write: Option<SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>>,
+    ws_stream: WebSocketStream<MaybeTlsStream<TcpStream>>,
     msg_cache: String,
     cookie_path: String,
 }
 
-impl ChatHub {
+impl Bing {
     pub async fn new(cookie_path: &str) -> Result<Self> {
         let conversation = Conversation::new(cookie_path).await?;
-        let mut chat_hub = Self {
+        let mut bing = Self {
             conversation,
-            read: None,
-            write: None,
+            ws_stream: Self::create_websocket().await?,
             msg_cache: String::new(),
             cookie_path: cookie_path.to_string(),
         };
-        chat_hub.create_websocket().await?;
-        chat_hub.send_protocol().await?;
-        Ok(chat_hub)
+        bing.send_protocol().await?;
+        Ok(bing)
     }
 
-    async fn create_websocket(&mut self) -> Result<()> {
+    async fn create_websocket() -> Result<WebSocketStream<MaybeTlsStream<TcpStream>>> {
         let url = "wss://sydney.bing.com/sydney/ChatHub";
         let (ws_stream, _) = tokio_tungstenite::connect_async(url).await?;
-        let (read, write) = ws_stream.split();
-        self.read = Some(read);
-        self.write = Some(write);
-        Ok(())
+        Ok(ws_stream)
     }
 
     async fn send_protocol(&mut self) -> Result<()> {
-        let write = self.read.as_mut().unwrap();
-        let read = self.write.as_mut().unwrap();
-        write
+        self.ws_stream
             .send(tungstenite::Message::Text(
-                r#"{"protocol": "json", "version": 1}"#.to_string() + "",
+                r#"{"protocol": "json", "version": 1}"#.to_string()
+                    + SPLIT_CHAR.to_string().as_str(),
             ))
             .await?;
-        read.next().await.unwrap()?;
+        let Some(msg) = self.ws_stream.next().await else {
+            bail!("websocket closed");
+        };
+        msg?;
         Ok(())
     }
 
     pub async fn reset(&mut self) -> Result<()> {
         self.close().await?;
         self.conversation = Conversation::new(&self.cookie_path).await?;
-        self.create_websocket().await?;
+        self.ws_stream = Self::create_websocket().await?;
         self.send_protocol().await?;
         self.msg_cache = String::new();
         Ok(())
     }
 
     pub async fn close(&mut self) -> Result<()> {
-        if self.read.is_some() {
-            self.read.as_mut().unwrap().close().await?;
-        }
+        self.ws_stream.close(None).await?;
         Ok(())
     }
 
     pub async fn send_msg(&mut self, msg: &str) -> Result<()> {
-        let write = match self.read.as_mut() {
-            Some(write) => write,
-            None => {
-                bail!("Connection aborted, send message failed");
-            }
-        };
-        write
+        self.ws_stream
             .send(tungstenite::Message::Text(fill_msg(
                 msg,
                 &self.conversation,
@@ -85,13 +72,10 @@ impl ChatHub {
     }
 
     pub async fn recv_raw_json(&mut self) -> Result<String> {
-        let read = match self.write.as_mut() {
-            Some(read) => read,
-            None => {
-                bail!("Connection aborted, receive message failed");
-            }
+        let Some(msg) =  self.ws_stream.next().await else{
+            bail!("websocket closed");
         };
-        self.msg_cache = read.next().await.unwrap()?.to_string();
+        self.msg_cache = msg?.to_string();
         Ok(self.msg_cache.clone())
     }
 

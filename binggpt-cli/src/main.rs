@@ -1,11 +1,14 @@
-use binggpt::pkg::client::Client;
+mod client;
+mod user_input;
+
+use client::Client;
 use colored::Colorize;
 
 #[tokio::main]
 async fn main() {
     let cookie_path = "~/.config/bing-cookies.json";
     let mut client = match Client::new(cookie_path).await {
-        Ok(chat_hub) => chat_hub,
+        Ok(client) => client,
         Err(err) => {
             println!(
                 "BingGPT create conversation error: {}",
