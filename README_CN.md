@@ -11,6 +11,8 @@ _BingGPT 命令行客户端，使用 rust 编写_
 
 </div>
 
+> 这个仓库已经很多天没有更新过了，以后可能也不会更新，建议您切换到[aichat](https://github.com/sigoden/aichat).
+
 这个项目是 [EdgeGPT](https://github.com/acheong08/EdgeGPT) 的 rust 语言实现，所有困难的事情都是原项目作者 `acheong08` 完成的，我仅仅是用 rust 写了一遍，所有的功劳都归功于他，感谢大佬的辛勤付出！
 
 ## 安装

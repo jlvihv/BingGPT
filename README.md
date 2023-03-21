@@ -11,6 +11,8 @@ _BingGPT command line client, written in rust_
 
 </div>
 
+> This repository hasn't been updated for many days, and may not be updated in the future. It is recommended that you switch to [Aichat](https://github.com/sigoden/aichat).
+
 [中文说明](README_CN.md)
 
 This project is a rust language implementation of [EdgeGPT](https://github.com/acheong08/EdgeGPT), all the hard stuff was done by the original project author `acheong08`, I just wrote it in rust, all credit goes to him, thanks for the hard work big guy!
