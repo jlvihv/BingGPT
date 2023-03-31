@@ -19,6 +19,8 @@ path = "src/main.rs"
 anyhow = "1.0.69"
 binggpt = "0.1"
 colored = "2.0.0"
+rusqlite = "0.28.0"
 rustyline = "11.0.0"
 tokio = { version = "1.25.0", features = ["full"] }
 utf8_slice = "1.0.0"
+chrono = "0.4.19"

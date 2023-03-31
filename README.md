@@ -24,7 +24,7 @@ cargo install binggpt-cli
 ```
 
 ```bash
-# use `binggpt` 
+# use `binggpt`
 binggpt
 ```
 
