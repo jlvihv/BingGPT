@@ -1,22 +1,36 @@
+// code needs sqlite support
+
 use anyhow::{bail, Result};
 use binggpt::tools::get_path;
 use binggpt::Bing;
 use colored::Colorize;
 use std::io::{stdout, Write};
+use rusqlite::{params, Connection};
 
 use crate::user_input;
 
 const CONFIG_DIR: &str = "~/.config/binggpt";
+const DB_PATH: &str = "~/.config/binggpt/chat.db";
 
 pub struct Client {
     bing: Bing,
+    db_conn: Connection,
 }
 
 impl Client {
     pub async fn new(cookie_path: &str) -> Result<Self> {
         Self::init_config_dir()?;
         let bing = Bing::new(cookie_path).await?;
-        Ok(Self { bing })
+        let db_conn = Connection::open(get_path(DB_PATH)?)?;
+        db_conn.execute(
+            "CREATE TABLE IF NOT EXISTS chat (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                input TEXT NOT NULL,
+                output TEXT NOT NULL
+             )",
+            params![],
+        )?;
+        Ok(Self { bing, db_conn })
     }
 
     pub async fn run(&mut self) -> Result<()> {
@@ -30,6 +44,7 @@ impl Client {
                 println!("get answer failed: {}", e.to_string().red());
                 println!("You can use `:reset` to reset the conversation.");
             };
+            self.save_chat(&input, "")?;
         }
     }
 
@@ -77,6 +92,7 @@ impl Client {
                     println!("{}", "Warning: Failed to flush stdout".yellow());
                 };
                 index = utf8_slice::len(&answer);
+                self.save_chat("", &answer)?;
             }
         }
         Ok(())
@@ -88,6 +104,7 @@ impl Client {
             let user_input = user_input::input();
             match user_input {
                 user_input::Input::Text(input) => {
+                    self.save_chat(&input, "")?;
                     return Ok(input);
                 }
                 user_input::Input::Command(cmd) => match cmd {
@@ -104,6 +121,7 @@ impl Client {
                     }
                     user_input::Command::Reset => {
                         self.bing.reset().await?;
+                        self.save_chat("", "")?;
                         println!("Reset the conversation.");
                     }
                     _ => {}
@@ -117,6 +135,14 @@ impl Client {
         if !std::path::Path::new(&config_dir).exists() {
             std::fs::create_dir_all(&config_dir)?;
         }
+        Ok(())
+    }
+
+    fn save_chat(&self, input: &str, output: &str) -> Result<()> {
+        self.db_conn.execute(
+            "INSERT INTO chat (input, output) VALUES (?, ?)",
+            params![input, output],
+        )?;
         Ok(())
     }
 }

@@ -1,5 +1,4 @@
 [workspace]
-
 members = ["binggpt", "binggpt-cli"]
 
 [profile.release]
